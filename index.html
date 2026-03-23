@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>论文格式检查系统</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>论文格式检查系统</h1>
+            <p class="subtitle">大学生毕业论文智能检测工具</p>
+            <button class="btn-settings" id="settingsBtn" title="AI设置">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
+        </header>
+
+        <div class="settings-modal" id="settingsModal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>AI评审设置</h3>
+                    <button class="modal-close" id="closeSettings">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="apiProvider">AI服务商</label>
+                        <select id="apiProvider">
+                            <option value="openai">OpenAI (GPT)</option>
+                            <option value="deepseek">DeepSeek</option>
+                            <option value="zhipu">智谱AI (GLM)</option>
+                            <option value="qwen">通义千问</option>
+                            <option value="moonshot">Moonshot (Kimi)</option>
+                            <option value="custom">自定义API</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="apiKey">API Key</label>
+                        <input type="password" id="apiKey" placeholder="请输入API Key">
+                    </div>
+                    <div class="form-group" id="apiUrlGroup" style="display: none;">
+                        <label for="apiUrl">API地址</label>
+                        <input type="text" id="apiUrl" placeholder="https://api.example.com/v1/chat/completions">
+                    </div>
+                    <div class="form-group">
+                        <label for="modelName">模型名称</label>
+                        <input type="text" id="modelName" placeholder="如: gpt-4, deepseek-chat">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="enableAI" checked>
+                            启用AI智能评审
+                        </label>
+                    </div>
+                    <div class="ai-status" id="aiStatus"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" id="testApiBtn">测试连接</button>
+                    <button class="btn-primary" id="saveSettings">保存设置</button>
+                </div>
+            </div>
+        </div>
+
+        <main>
+            <section class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                    </div>
+                    <p class="upload-text">点击或拖拽上传论文文档</p>
+                    <p class="upload-hint">支持 .docx 格式文件</p>
+                    <input type="file" id="fileInput" accept=".docx" hidden>
+                </div>
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <span class="file-name" id="fileName"></span>
+                    <button class="btn-clear" id="clearBtn">清除</button>
+                </div>
+            </section>
+
+            <section class="check-section">
+                <div class="check-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="checkFormat" checked>
+                        <span>格式检测</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="checkStructure" checked>
+                        <span>结构检测</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="checkAI" checked>
+                        <span>AI智能评审</span>
+                    </label>
+                </div>
+                <button class="btn-check" id="checkBtn" disabled>
+                    <span class="btn-text">开始检测</span>
+                    <span class="btn-loading" style="display: none;">
+                        <span class="spinner"></span>
+                        检测中...
+                    </span>
+                </button>
+            </section>
+
+            <section class="result-section" id="resultSection" style="display: none;">
+                <div class="result-header">
+                    <h2>检测结果</h2>
+                    <div class="result-summary" id="resultSummary"></div>
+                </div>
+
+                <div class="result-tabs">
+                    <button class="tab-btn active" data-tab="format">格式问题</button>
+                    <button class="tab-btn" data-tab="content">内容问题</button>
+                    <button class="tab-btn" data-tab="structure">结构检查</button>
+                    <button class="tab-btn" data-tab="ai">AI评审</button>
+                </div>
+
+                <div class="result-content">
+                    <div class="tab-content active" id="formatTab">
+                        <div class="issue-list" id="formatIssues"></div>
+                    </div>
+                    <div class="tab-content" id="contentTab">
+                        <div class="issue-list" id="contentIssues"></div>
+                    </div>
+                    <div class="tab-content" id="structureTab">
+                        <div class="structure-info" id="structureInfo"></div>
+                    </div>
+                    <div class="tab-content" id="aiTab">
+                        <div class="ai-review" id="aiReview">
+                            <div class="ai-placeholder">
+                                <p>AI评审功能需要配置API Key</p>
+                                <p>请点击右上角设置按钮进行配置</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="export-section">
+                    <button class="btn-export" id="exportBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        导出Excel报告
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>论文格式检查系统 v2.0 | 智能AI论文评审系统</p>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="checker.js"></script>
+    <script src="ai-reviewer.js"></script>
+</body>
+</html>
